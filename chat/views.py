@@ -1,14 +1,12 @@
-from .models import CustomUser
-from django.contrib.auth import authenticate, login
-from django.shortcuts import render
+from django.contrib.auth import authenticate, login as auth_login  # Rename login import
 from django.shortcuts import render, redirect
 from chat.models import CustomUser
-from django.contrib.auth import authenticate, login 
 from .forms import SignupForm, LoginForm
 from django.contrib.auth.decorators import login_required
 from dotenv import load_dotenv
 import openai
 import os
+
 load_dotenv()
 
 api_key = os.getenv("OPENAI_KEY", None)
@@ -23,13 +21,13 @@ def signup(request):
         user = CustomUser.objects.create_user(
             username=username, email=email, password=password, fullname=fullname
         )
-        login(request, user)
+        auth_login(request, user)  # Use auth_login instead of login
         # Replace 'login' with your desired URL name
         return redirect('login')
     return render(request, 'signup.html')
 
 
-def login(request):
+def login_view(request):  # Rename login function
     if request.method == 'POST':
         form = LoginForm(request.POST)
         if form.is_valid():
@@ -37,7 +35,7 @@ def login(request):
             password = form.cleaned_data['password']
             user = authenticate(request, username=username, password=password)
             if user is not None:
-                login(request, user)
+                auth_login(request, user)  # Use auth_login instead of login
                 # Redirect to the chat page after successful login
                 return redirect('chat')
             else:
@@ -47,8 +45,9 @@ def login(request):
 
     return render(request, 'login.html', {'form': form})
 
+
 def home(request):
-    return render(request,'landing.html')
+    return render(request, 'landing.html')
 
 
 @login_required(login_url='login')
